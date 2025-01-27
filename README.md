@@ -22,8 +22,7 @@ O objetivo do estudo é caracterizar os perfis dos acidentes de trabalho envolve
 
 ## Estrutura do Repositório
 
-- **/Dados_Gerais.xlsx/**: Contém dados gerais anonimizados utilizados nas caracterização da amostra.
-- **/Dados_MCA_Agrupamento_Hierárquico.xlsx/**: Contém dados utilizados nas análises de MCA e agrupamento hierárquico.  
+- **/Dados_Gerais.xlsx/**: Contém dados gerais anonimizados utilizados no estudo.
 - **README.md**: Este arquivo, com informações gerais sobre o repositório.
 
 ## Contato
