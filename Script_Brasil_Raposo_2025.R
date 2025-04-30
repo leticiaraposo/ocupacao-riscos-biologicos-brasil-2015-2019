@@ -266,107 +266,85 @@ data_matrix <- as.data.frame(data_matrix)
 data_matrix$Categoria <- rownames(data_matrix)
 
 # Criar gráficos de barras para Cluster 1
-c1 <- data_matrix %>%
-  filter(!is.na(`Cluster 1`)) %>% 
-  filter(`Cluster 1`> 0) %>% 
-  mutate(
-    Categoria = reorder(Categoria, `Cluster 1`),
-    Correlacao = factor(case_when(`Cluster 1` > 10 ~ "Alta",
-                                  `Cluster 1` > 5 ~ "Média",
-                                  TRUE ~ "Baixa"),
-                        levels = c("Baixa", "Média", "Alta") 
-    )) %>%
-  ggplot(aes(x = Categoria, y = `Cluster 1`, fill = Correlacao)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = c(
-    "Baixa" = "#00ac46",
-    "Média" = "#fdc500",
-    "Alta" = "#dc0000"
-  )) +
-  labs(title = "Grupo 1",
-       x = "",
-       y = "v-test",
-       fill = "Representatividade") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(
-    labels = function(x)
-      ifelse(x == 100, "Inf", ifelse(x == -100, "-Inf", x))
-  )
-
-# Criar gráficos de barras para Cluster 2
-c2 <- data_matrix %>%
-  filter(!is.na(`Cluster 2`)) %>% 
-  filter(`Cluster 2`> 0) %>% 
-  mutate(
-    Categoria = reorder(Categoria, `Cluster 2`),
-    Correlacao = factor(case_when(`Cluster 2` > 10 ~ "Alta",
-                                  `Cluster 2` > 5 ~ "Média",
-                                  TRUE ~ "Baixa"),
-                        levels = c("Baixa", "Média", "Alta") 
-    )) %>%
-  ggplot(aes(x = Categoria, y = `Cluster 2`, fill = Correlacao)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = c(
-    "Baixa" = "#00ac46",
-    "Média" = "#fdc500",
-    "Alta" = "#dc0000"
-  )) +
-  labs(title = "Grupo 2",
-       x = "",
-       y = "v-test",
-       fill = "Representatividade") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(
-    labels = function(x)
-      ifelse(x == 100, "Inf", ifelse(x == -100, "-Inf", x))
-  )
-
-# Criar gráficos de barras para Cluster 3
-c3 <- data_matrix %>%
-  filter(!is.na(`Cluster 3`)) %>% 
-  filter(`Cluster 3`> 0) %>% 
-  mutate(
-    Categoria = reorder(Categoria, `Cluster 3`),
-    Correlacao = factor(case_when(`Cluster 3` > 10 ~ "Alta",
-                                  `Cluster 3` > 5 ~ "Média",
-                                  TRUE ~ "Baixa"),
-                        levels = c("Baixa", "Média", "Alta") 
-    )) %>%
-  ggplot(aes(x = Categoria, y = `Cluster 3`, fill = Correlacao)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = c(
-    "Baixa" = "#00ac46",
-    "Média" = "#fdc500",
-    "Alta" = "#dc0000"
-  )) +
-  labs(title = "Grupo 3",
-       x = "",
-       y = "v-test",
-       fill = "Representatividade") +
-  theme_minimal() +
-  coord_flip() +
-  scale_y_continuous(
-    labels = function(x)
-      ifelse(x == 100, "Inf", ifelse(x == -100, "-Inf", x))
-  )
-
-# Salvar os gráficos consolidados em uma única imagem
-png("Figura1.png",
-    units = "cm",
-    width = 15,
-    height = 25,
-    res = 300)
+library(ggplot2)
+library(dplyr)
 library(ggpubr)
-ggarrange(
-  c1,
-  c2,
-  c3,
-  ncol = 1,
-  nrow = 3,
+
+make_panel <- function(cluster, letra) {
+  panel_data <- data_matrix %>%
+    filter(!is.na(.data[[cluster]]), .data[[cluster]] > 0) %>%
+    mutate(
+      Categoria = reorder(Categoria, .data[[cluster]]),
+      Represent = case_when(
+        .data[[cluster]] > 10 ~ "Alta",
+        .data[[cluster]] > 5  ~ "Média",
+        TRUE                  ~ "Baixa"
+      )
+    )
+  
+  ggplot(panel_data, aes(x = Categoria, y = .data[[cluster]], fill = Represent)) +
+    geom_col() +
+    coord_flip(expand = FALSE) +
+    scale_y_continuous(
+      limits = c(0, max_v * 1.05),  # espaço extra para o texto
+      expand = c(0, 0),
+      breaks = scales::pretty_breaks(n = 5),
+      labels = function(x) ifelse(x == 100, "Inf", x)
+    ) +
+    scale_fill_manual(values = c(
+      "Baixa" = "#00ac46",
+      "Média" = "#fdc500",
+      "Alta"  = "#dc0000"
+    )) +
+    labs(
+      x = NULL,
+      y = "v-test (Z-score)",
+      fill = "Representatividade"
+    ) +
+    theme(
+      panel.background = element_blank(),
+      panel.grid        = element_blank(),
+      axis.line         = element_line(color = "black"),
+      axis.ticks        = element_line(color = "black"),
+      axis.text.y       = element_text(size = 8),
+      axis.text.x       = element_text(size = 8),
+      legend.position   = "bottom"
+    ) +
+    annotate(
+      "text",
+      x     = Inf,
+      y     = Inf,   
+      label = letra,
+      hjust = 1.1,
+      vjust = 1.1,
+      size   = 6,
+      fontface = "bold"
+    )
+}
+
+c1 <- make_panel("Cluster 1", "A")
+c2 <- make_panel("Cluster 2", "B")
+c3 <- make_panel("Cluster 3", "C")
+
+fig1 <- ggarrange(
+  c1, c2, c3,
+  ncol = 1, nrow = 3,
   common.legend = TRUE,
   legend = "bottom"
 )
-dev.off()
 
+ggsave(
+  filename = "Figura1.png",
+  plot     = fig1,
+  units    = "cm",
+  width    = 18, height = 25,
+  dpi      = 300
+)
+
+ggsave(
+  filename = "Figura1.svg",
+  plot     = fig1,
+  units    = "cm",
+  width    = 18, height = 25,
+  dpi      = 300
+)
