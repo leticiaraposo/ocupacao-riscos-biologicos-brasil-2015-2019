@@ -265,7 +265,7 @@ data_matrix[data_matrix == -Inf] <- -100
 data_matrix <- as.data.frame(data_matrix)
 data_matrix$Categoria <- rownames(data_matrix)
 
-# Criar gráficos de barras para Cluster 1
+# Criar gráficos de barras 
 library(ggplot2)
 library(dplyr)
 library(ggpubr)
